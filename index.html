@@ -644,6 +644,23 @@
       }
     })();
 
+    // On mobile, panels stack vertically and can be taller than the screen
+    // (e.g. Reservations, with the booking widget), so the IntersectionObserver's
+    // 60%-visible threshold below never fires for them. This directly hides the
+    // arrow once the visitor has actually scrolled to the bottom of the page.
+    (function() {
+      var scrollEl = document.getElementById('scroll');
+      var scrollHint = document.querySelector('.scroll-hint');
+      var mq = window.matchMedia('(max-width: 768px)');
+      if (!scrollEl || !scrollHint) return;
+      function checkBottom() {
+        if (!mq.matches) return;
+        var atBottom = scrollEl.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 4;
+        if (atBottom) scrollHint.classList.add('hidden');
+      }
+      scrollEl.addEventListener('scroll', checkBottom, { passive: true });
+    })();
+
     function toggleNav() {
       document.getElementById('nav-links').classList.toggle('open');
     }
