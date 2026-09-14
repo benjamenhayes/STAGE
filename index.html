@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stage by Circa</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="shortcut icon" type="image/png" href="favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #6E4A2E; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #5A3D26; }
+    :root {
+      --bg: #FAFAF8;
+      --ink: #1A1917;
+      --muted: #9A9590;
+      --serif: 'Geist', system-ui, sans-serif;
+    }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: var(--serif);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* INTRO PANEL (full-bleed blurred photo, centred text) */
+    .panel.panel-intro {
+      display: block;
+      background: #14120F;
+    }
+    .intro-bg {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    .intro-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: blur(6px);
+      transform: scale(1.05);
+    }
+    .diptych-content {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 90%;
+      max-width: 620px;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      text-align: center;
+      z-index: 2;
+    }
+    .diptych-top {
+      position: relative;
+      flex: 0 0 auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .diptych-bottom {
+      position: relative;
+      flex: 0 0 auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .diptych-wordmark {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 10px;
+      color: #FAFAF8;
+      white-space: nowrap;
+      font-family: var(--serif);
+    }
+    .diptych-wordmark .w-stage {
+      font-size: 14pt;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .diptych-wordmark .w-by {
+      font-size: 11pt;
+      font-weight: 300;
+      letter-spacing: 0.02em;
+    }
+    .diptych-wordmark .w-circa {
+      font-size: 14pt;
+      font-weight: 300;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+    }
+    .diptych-description p {
+      color: #FAFAF8;
+      font-family: var(--serif);
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      line-height: 1.9;
+      text-align: justify;
+      hyphens: none;
+    }
+    .diptych-enter {
+      position: absolute;
+      left: 50%;
+      bottom: 7%;
+      transform: translateX(-50%);
+      font-family: var(--serif);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(250,250,248,0.9);
+      background: none;
+      border: none;
+      cursor: pointer;
+      z-index: 2;
+      transition: color 0.2s;
+    }
+    .diptych-enter:hover { color: #FAFAF8; }
+    .diptych-enter:active,
+    .diptych-enter.clicked { color: #3278B4; }
+    @media (max-width: 768px) {
+      .diptych-content { width: 84%; gap: 16px; }
+      .diptych-top, .diptych-bottom { padding: 0 6%; }
+      .diptych-description p { font-size: 17px; font-weight: 500; line-height: 1.75; }
+      .diptych-enter { bottom: 8%; font-size: 11px; letter-spacing: 0.16em; }
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0;
+      width: 62%;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0 60px;
+      height: 64px;
+      background: transparent;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    nav * { pointer-events: all; }
+    nav.nav-hidden { opacity: 0; pointer-events: none; }
+    nav.nav-hidden * { pointer-events: none; }
+    .wordmark {
+      font-family: var(--serif);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #3278B4;
+      text-decoration: none;
+    }
+    .nav-links {
+      list-style: none;
+      display: flex;
+      width: 43vw;
+      gap: 14px;
+      justify-content: space-between;
+      white-space: nowrap;
+    }
+    .nav-links a {
+      font-family: var(--serif);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.072em;
+      text-transform: uppercase;
+      color: #1A1917;
+      text-decoration: none;
+      opacity: 1;
+      transition: color 0.2s;
+    }
+    .nav-links li:nth-child(1) a:hover,
+    .nav-links li:nth-child(1) a.active { color: #6E4A2E; }
+    .nav-links li:nth-child(2) a:hover,
+    .nav-links li:nth-child(2) a.active { color: #D4A843; }
+    .nav-links li:nth-child(3) a:hover,
+    .nav-links li:nth-child(3) a.active { color: #3278B4; }
+    .nav-links li:nth-child(4) a:hover,
+    .nav-links li:nth-child(4) a.active { color: #6E4A2E; }
+
+    /* HORIZONTAL SCROLL CONTAINER */
+    .scroll-container {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+      overflow-x: scroll;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .scroll-container::-webkit-scrollbar { display: none; }
+
+    /* PANELS */
+    .panel {
+      flex: 0 0 100vw;
+      height: 100vh;
+      scroll-snap-align: start;
+      display: grid;
+      grid-template-columns: 1fr 55%;
+      position: relative;
+    }
+
+    /* Text side */
+    .panel-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-top: 64px;
+      height: calc(100% - 64px);
+      padding: 36px 80px 80px 60px;
+      overflow-y: auto;
+    }
+    .panel-kitchen .panel-text { justify-content: flex-start; }
+    .panel-welcome .panel-text {
+      align-items: center;
+      text-align: center;
+      padding: 36px 60px 80px;
+    }
+    .panel-welcome .panel-body p {
+      font-size: 18px;
+      line-height: 1.5;
+      opacity: 1;
+      color: #1A1917;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-align: justify;
+      hyphens: none;
+    }
+    .welcome-logo {
+      display: block;
+      margin: 0 auto;
+      width: 300px;
+      max-width: 70%;
+      height: auto;
+      filter: blur(2.5px);
+      transform: scale(1.01);
+      opacity: 0.32;
+      transition: filter 0.9s ease, opacity 0.9s ease;
+    }
+    .panel-welcome { display: block; }
+    .panel-welcome .panel-image img {
+      filter: blur(2.5px);
+      transform: scale(1.01);
+      transition: filter 0.9s ease;
+    }
+    .panel-welcome.revealed .welcome-logo {
+      filter: blur(0);
+      opacity: 1;
+    }
+    .panel-welcome.revealed .panel-image img {
+      filter: blur(0);
+    }
+    .welcome-visual {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: 1fr 55%;
+      overflow: hidden;
+    }
+    .welcome-scrim {
+      position: absolute;
+      inset: 0;
+      background: rgba(250,250,248,0.6);
+      z-index: 1;
+      pointer-events: none;
+      transition: opacity 0.9s ease;
+    }
+    .panel-welcome.revealed .welcome-scrim {
+      opacity: 0;
+    }
+    .welcome-overlay-text {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, calc(-50% - 90px));
+      width: 90%;
+      max-width: 560px;
+      text-align: center;
+      z-index: 2;
+      transition: opacity 0.6s ease;
+    }
+    .panel-welcome.revealed .welcome-overlay-text {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .welcome-overlay-text p {
+      color: #1A1917;
+      font-family: var(--serif);
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      line-height: 1.9;
+      text-align: justify;
+      hyphens: none;
+    }
+    .welcome-enter {
+      position: absolute;
+      left: 50%;
+      bottom: 9%;
+      transform: translateX(-50%);
+      font-family: var(--serif);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(26,25,23,0.75);
+      background: none;
+      border: none;
+      cursor: pointer;
+      z-index: 2;
+      transition: color 0.2s;
+    }
+    .welcome-enter:hover { color: #1A1917; }
+    .welcome-enter:active,
+    .welcome-enter.clicked { color: #3278B4; }
+    .panel-welcome.revealed .welcome-enter {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+    .welcome-down-hint { display: none; }
+    @media (max-width: 768px) {
+      .welcome-enter { display: none; }
+      .welcome-visual { grid-template-columns: 1fr; height: auto; padding: 64px 32px 0; }
+      .panel-welcome .panel-text { order: 1; padding: 0; margin-bottom: 74px; }
+      .welcome-logo { width: 234px; filter: none; opacity: 1; }
+      .welcome-overlay-text { order: 2; position: static; transform: none; width: 100%; max-width: none; margin-bottom: 74px; }
+      .welcome-overlay-text p { font-size: 16px; font-weight: 500; line-height: 1.65; }
+      .panel-welcome.revealed .welcome-overlay-text { opacity: 1; pointer-events: auto; }
+      .panel-welcome .panel-image { order: 3; margin: 0 -32px; width: calc(100% + 64px); }
+      .panel-welcome .panel-image img { filter: blur(0); }
+      .welcome-scrim { display: none; }
+      .welcome-down-hint {
+        display: block;
+        position: absolute;
+        left: 50%;
+        bottom: 18px;
+        transform: translateX(-50%);
+        font-size: 22px;
+        line-height: 1;
+        color: rgba(255,255,255,0.85);
+        text-shadow: 0 1px 4px rgba(0,0,0,0.35);
+        z-index: 3;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+      .welcome-down-hint.hidden { opacity: 0; }
+      html, body, .scroll-container, .panel-text, .nav-links { scrollbar-width: none; }
+      html::-webkit-scrollbar, body::-webkit-scrollbar,
+      .scroll-container::-webkit-scrollbar, .panel-text::-webkit-scrollbar,
+      .nav-links::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    }
+    .panel-label {
+      font-size: 14px;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      color: #6E6B68;
+      font-weight: 800;
+      display: none;
+      margin-bottom: 52px;
+    }
+    .panel-body p {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #1A1917;
+      opacity: 1;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-align: justify;
+      hyphens: none;
+      margin-bottom: 22px;
+    }
+    .panel-body p:last-child { margin-bottom: 0; }
+    .panel-facts {
+      margin-top: 32px;
+    }
+    .panel-facts p {
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      line-height: 1.7;
+      opacity: 0.82;
+      white-space: nowrap;
+    }
+    .panel-facts a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .panel-facts a:hover { color: #6E4A2E; }
+
+    .panel-links {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 44px;
+    }
+    .panel-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Geist', system-ui, sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      color: var(--ink);
+      text-decoration: none;
+      white-space: nowrap;
+      opacity: 0.75;
+      transition: opacity 0.2s;
+    }
+    .panel-link:hover { opacity: 1; }
+    .panel-link::before { content: '→'; }
+
+    /* Image side */
+    .panel-image {
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+    .panel-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* NAV ARROW */
+    .scroll-hint {
+      position: fixed;
+      top: 50%;
+      right: 28px;
+      transform: translateY(-50%);
+      font-family: 'Geist', system-ui, sans-serif;
+      font-size: 28px;
+      color: rgba(255,255,255,0.7);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .scroll-hint:hover { opacity: 0.6; }
+    .scroll-hint.hidden { opacity: 0; pointer-events: none; }
+    @media (max-width: 768px) {
+      .scroll-hint .arrow { display: none; }
+      .scroll-hint::after { content: "↓"; }
+    }
+
+    .gap { display: block; height: 24px; }
+
+    .ig-handle-mobile { display: none; }
+
+
+    @media (max-width: 768px) {
+      nav { width: 100%; right: 0; justify-content: space-between; }
+      .nav-links { display: none; flex-direction: column; width: auto; justify-content: flex-start; position: fixed; top: 64px; left: 0; right: 0; background: var(--bg); padding: 20px 28px 28px; gap: 20px; z-index: 99; border-bottom: 1px solid #E6E2DB; }
+      .nav-links.open { display: flex; }
+      .hamburger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; padding: 8px 10px; background: #6E4A2E; border-radius: 6px; border: none; }
+      .hamburger span { display: block; width: 22px; height: 2px; background: #FAFAF8; transition: all 0.2s; }
+    }
+    @media (min-width: 769px) {
+      .hamburger { display: none; }
+    }
+    @media (max-width: 1320px) {
+      .panel-text { min-width: 0; }
+      .panel-facts p, .panel-link { white-space: normal; }
+    }
+    @media (max-width: 768px) {
+      html, body { overflow: auto; }
+      .scroll-container { flex-direction: column; overflow-x: hidden; overflow-y: auto; scroll-snap-type: y proximity; }
+      .panel { grid-template-columns: 1fr; height: auto; scroll-snap-align: start; flex: none; }
+      .panel-label { display: block; }
+      .panel-image { height: 66vw; display: block; }
+      .panel-image img { width: 100%; height: 100%; object-fit: cover; }
+      .panel-book .panel-image { height: auto; }
+      .panel-book .panel-image img { height: auto; object-fit: contain; }
+      #ig-handle { display: none; }
+      .ig-handle-mobile {
+        display: inline-block;
+        position: absolute;
+        bottom: 16px;
+        right: 20px;
+        font-family: 'Geist', system-ui, sans-serif;
+        font-size: 13.75px;
+        letter-spacing: 0.1em;
+        color: #D4A843;
+        text-decoration: none;
+        z-index: 5;
+      }
+      .panel { align-items: start; align-content: start; }
+      .panel-text { margin-top: 0; height: auto; padding: 74px 28px 74px; overflow-y: visible; min-width: 0; justify-content: flex-start; }
+      .panel-facts p, .panel-link { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+
+    <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="javascript:void(0)" onclick="setActiveNav(this);scrollToPanel(1)">The Restaurant</a></li>
+      <li><a href="javascript:void(0)" onclick="setActiveNav(this);scrollToPanel(2);document.getElementById('nav-links').classList.remove('open')">Koo Yong</a></li>
+      <li><a href="javascript:void(0)" onclick="setActiveNav(this);scrollToPanel(3);document.getElementById('nav-links').classList.remove('open')">Reservations</a></li>
+      <li><a href="https://app.squareup.com/gift/MLDEN4PRE65QH/order" target="_blank" onclick="setActiveNav(this)">Vouchers</a></li>
+    </ul>
+  </nav>
+
+  <div class="scroll-container" id="scroll">
+
+    <!-- WELCOME -->
+    <div class="panel panel-welcome" id="panel-welcome">
+      <div class="welcome-visual">
+        <div class="panel-text">
+          <div class="panel-body">
+            <img src="logo-stage.png" alt="Stage" class="welcome-logo">
+          </div>
+        </div>
+        <div class="panel-image"><img src="hero-1.jpg" alt=""><span class="welcome-down-hint" id="welcome-down-hint">&darr;</span></div>
+        <div class="welcome-scrim"></div>
+        <div class="welcome-overlay-text">
+          <p>From September 2026, Stage has a new chapter. Felix is moving back to Cornwall, and Rob, Circa&rsquo;s chef-owner, is stepping in. Plenty of the team you know are staying, and we&rsquo;re continuing the Stage tradition: a low-key tasting menu, using our homegrown produce, built around what&rsquo;s at its best each season.</p>
+          <p style="margin-top:30px;">Bookings already made are unaffected.</p>
+        </div>
+        <button class="welcome-enter" onclick="this.classList.add('clicked');document.querySelector('nav').classList.remove('nav-hidden');document.getElementById('panel-welcome').classList.add('revealed');var sh=document.querySelector('.scroll-hint');if(sh)sh.classList.remove('hidden')">Click to enter</button>
+      </div>
+    </div>
+
+    <!-- THE KITCHEN -->
+    <div class="panel panel-kitchen" id="panel-kitchen">
+      <div class="panel-text">
+        <div class="panel-body">
+          <span class="panel-label">The Restaurant</span>
+          <p>Rob and the kitchen team cook a low-key tasting menu built around the seasons and whatever's coming out of the garden at Koo Yong. We keep imports to a minimum, growing and foraging what we can and buying direct from small farms for the rest.</p>
+          <p>We try not to waste much — that means a lot of fermenting, misos, kombucha, koji, made in-house from whatever's around.</p>
+          <p>We work with independent wine and cider makers who do things properly. Our cocktails and soft drinks use homegrown and foraged ingredients, working closely with the kitchen to cut down on waste.</p>
+        </div>
+        <div class="panel-facts">
+          <p><a href="Sample Menu.docx" target="_blank">6 courses &middot; &pound;60 &middot; Dinner &amp; Saturday Lunch</a></p>
+          <p><a href="Sample Menu Short Set.docx" target="_blank">4 courses &middot; &pound;35 &middot; Tuesday &ndash; Friday Lunch</a></p>
+          <p style="font-size:14px;font-weight:300;letter-spacing:0.15em;font-style:italic;white-space:normal;line-height:2.04;">*Optional wine flight &middot; 4 course &pound;25 &middot; 6 course &pound;45</p>
+        </div>
+        <div class="panel-links">
+          <a href="javascript:void(0)" onclick="scrollToPanel(3)" class="panel-link">Book a table</a>
+        </div>
+      </div>
+      <div class="panel-image">
+        <img src="hero-2.jpg" alt="Plated dish">
+      </div>
+    </div>
+
+    <!-- KOO JONG -->
+    <div class="panel" id="panel-kooyong">
+      <div class="panel-text">
+        <div class="panel-body">
+          <span class="panel-label">Koo Yong</span>
+          <p>Koo Yong is our co-founder Ben's home on the River Dart, where we've built a market garden ourselves over the last couple of years.</p>
+          <p>Alongside our veg patch and polytunnel, we've planted a whole bunch of apple, pear and stone fruit trees, established currants, gooseberries and tayberry bushes, and recently built our very own mushroom grow room to give us lion's mane and shiitake. He works the soil in a regenerative way rather than against it.</p>
+          <p>We try to make the most of our lovely little patch of South Devon &mdash; from foraging in the woodland to utilising the established trees, bushes and wild herbs: rowan, plum, douglas fir, yarrow, bronze fennel and whatever else we can find.</p>
+          <p>When there's plenty, we preserve and ferment things for the larder. When it's leaner, the larder carries us through.</p>
+        </div>
+      </div>
+      <div class="panel-image">
+        <img src="hero-3.jpg" alt="Pressed leaves">
+      </div>
+    </div>
+
+
+    <!-- RESERVATIONS -->
+    <div class="panel panel-book" id="panel-reservations">
+      <div class="panel-text">
+        <div class="panel-body">
+          <span class="panel-label">Reservations</span>
+          <div style="margin-bottom:28px;">
+            <p style="margin:0;line-height:2;">Tuesday &ndash; Saturday : Lunch &amp; Dinner</p>
+          </div>
+          <div style="margin-bottom:28px;">
+            <p style="margin:0;line-height:2;">31 Magdalen Road, Exeter EX2 4TA</p>
+          </div>
+          <div style="margin-bottom:32px;">
+            <p style="margin:0;line-height:2;"><a href="tel:01392496700" style="color:inherit;text-decoration:none;">01392 496700</a></p>
+            <p style="margin:0;line-height:2;"><a href="mailto:info@stagerestaurant.co.uk" style="color:inherit;text-decoration:none;">info@stagerestaurant.co.uk</a></p>
+          </div>
+          <div>
+            <script type="text/javascript" src="https://www.opentable.co.uk/widget/reservation/loader?rid=263607&amp;type=standard&amp;theme=standard&amp;color=1&amp;dark=false&amp;iframe=true&amp;domain=couk&amp;lang=en-GB&amp;newtab=false&amp;ot_source=Restaurant%20website&amp;cfe=true"></script>
+          </div>
+          <div style="border-top:1px solid #E6E2DB;padding-top:24px;margin-top:28px;">
+            <p style="margin:0;font-size:14px;opacity:0.65;line-height:1.7;">With a small kitchen and a daily-changing menu, we can cater for most dietary and allergy requirements if we know in advance &mdash; please specify these when booking. Requests we hear about on the day aren't always possible.</p>
+          </div>
+        </div>
+      </div>
+      <div class="panel-image">
+        <img src="hero-4.jpg" alt="Drying herbs">
+        <a href="https://www.instagram.com/circa.devon/" target="_blank" class="ig-handle-mobile">@circa.devon</a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="scroll-hint" onclick="scrollNext()"><span class="arrow">&rarr;</span></div>
+
+  <script>
+    // Scroll to panel from URL hash on load
+    window.addEventListener('load', function() {
+      var hash = window.location.hash;
+      if (hash) {
+        var n = parseInt(hash.replace('#',''));
+        if (!isNaN(n)) {
+          setTimeout(function() { scrollToPanel(n); }, 100);
+        }
+      }
+    });
+
+    (function() {
+      var welcomeHint = document.getElementById('welcome-down-hint');
+      var scrollEl = document.getElementById('scroll');
+      if (welcomeHint && scrollEl) {
+        scrollEl.addEventListener('scroll', function() {
+          welcomeHint.classList.add('hidden');
+        }, { once: true, passive: true });
+      }
+    })();
+
+    function toggleNav() {
+      document.getElementById('nav-links').classList.toggle('open');
+    }
+    function setActiveNav(el) {
+      document.querySelectorAll('.nav-links a').forEach(function(a){ a.classList.remove('active'); });
+      el.classList.add('active');
+    }
+
+    // Keep the current panel's nav link highlighted while it's in view,
+    // whether the visitor scrolls, swipes, or arrives via a link.
+    (function() {
+      var panelNavIndex = {
+        'panel-kitchen': 0,
+        'panel-kooyong': 1,
+        'panel-reservations': 2
+      };
+      var navLinkEls = document.querySelectorAll('#nav-links > li > a');
+      var scrollHint = document.querySelector('.scroll-hint');
+      var navEl = document.querySelector('nav');
+      var observer = new IntersectionObserver(function(entries) {
+        // Queried fresh (not cached at setup time) since this element sits after
+        // this <script> block in the document and wouldn't exist yet otherwise.
+        var igEl = document.getElementById('ig-handle');
+        entries.forEach(function(entry) {
+          if (!entry.isIntersecting) return;
+
+          // Only the pre-entry intro screen counts as "holding" — once the visitor
+          // has clicked through (panel-welcome has .revealed), scrolling back to it
+          // later should keep the nav, arrow and Instagram handle showing as normal.
+          var isHolding = entry.target.id === 'panel-welcome' && !entry.target.classList.contains('revealed');
+
+          // Last panel — nothing further to scroll to, so hide the arrow.
+          // Also hidden on the holding page, which has its own "Click to enter" cue.
+          if (scrollHint) {
+            scrollHint.classList.toggle('hidden', entry.target.id === 'panel-reservations' || isHolding);
+          }
+
+          // Holding page (the pre-entry intro screen) shouldn't offer nav or the Instagram handle yet.
+          if (navEl) {
+            navEl.classList.toggle('nav-hidden', isHolding);
+          }
+          if (igEl) {
+            igEl.style.opacity = isHolding ? '0' : '1';
+            igEl.style.pointerEvents = isHolding ? 'none' : 'all';
+          }
+
+          if (entry.target.id === 'panel-welcome') {
+            navLinkEls.forEach(function(a){ a.classList.remove('active'); });
+            return;
+          }
+          var idx = panelNavIndex[entry.target.id];
+          if (idx === undefined) return;
+          navLinkEls.forEach(function(a){ a.classList.remove('active'); });
+          if (navLinkEls[idx]) navLinkEls[idx].classList.add('active');
+        });
+      }, { threshold: 0.6 });
+      ['panel-welcome','panel-kitchen','panel-kooyong','panel-reservations'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) observer.observe(el);
+      });
+    })();
+    function scrollToPanel(n) {
+      var c = document.getElementById('scroll');
+      if (window.innerWidth <= 768) {
+        var panels = document.querySelectorAll('.panel, .panel-info');
+        if (panels[n]) panels[n].scrollIntoView({ behavior: 'smooth' });
+      } else {
+        c.scrollTo({ left: n * window.innerWidth, behavior: 'smooth' });
+      }
+      document.getElementById('nav-links').classList.remove('open');
+    }
+
+    function scrollNext() {
+      var c = document.getElementById('scroll');
+      var start = c.scrollLeft;
+      var target = start + window.innerWidth;
+      var duration = 900;
+      var startTime = null;
+      c.style.scrollSnapType = 'none';
+      function step(ts) {
+        if (!startTime) startTime = ts;
+        var progress = Math.min((ts - startTime) / duration, 1);
+        var ease = progress < 0.5 ? 2*progress*progress : -1+(4-2*progress)*progress;
+        c.scrollLeft = start + (target - start) * ease;
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          c.scrollLeft = target;
+          c.style.scrollSnapType = '';
+        }
+      }
+      requestAnimationFrame(step);
+    }
+  </script>
+
+
+  <!-- Instagram handle -->
+  <a href="https://www.instagram.com/circa.devon/" target="_blank" id="ig-handle" style="position:fixed;bottom:16px;right:48px;font-family:'Geist',sans-serif;font-size:13.75px;letter-spacing:0.1em;color:#D4A843;text-decoration:none;z-index:50;transition:opacity 0.3s ease;">@circa.devon</a>
+
+</body>
+</html>
